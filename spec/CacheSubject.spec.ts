@@ -1,17 +1,17 @@
 import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
 
-import { SyncSubject } from '../lib/SyncSubject';
+import { CacheSubject } from '../lib/CacheSubject';
 
 
-describe('SyncSubject', function() {
+describe('CacheSubject', function() {
   it('should extend Subject', function() {
-    const subject = new SyncSubject(null);
+    const subject = new CacheSubject(null);
     expect(subject instanceof Subject).toBe(true);
   });
 
   it('should start with an initialization value', function(done) {
-    const subject = new SyncSubject('foo');
+    const subject = new CacheSubject('foo');
     const expected = ['foo', 'bar'];
     let i = 0;
 
@@ -24,7 +24,7 @@ describe('SyncSubject', function() {
   });
 
   it('should pump values to multiple subscribers', function(done) {
-    const subject = new SyncSubject('init');
+    const subject = new CacheSubject('init');
     const expected = ['init', 'foo', 'bar'];
     let i = 0;
     let j = 0;
@@ -43,24 +43,29 @@ describe('SyncSubject', function() {
     subject.complete();
   });
 
-  it('should not allow values to be nexted after a return', function(done) {
-    const subject = new SyncSubject('init');
+  it('should ignore new values after a complete', function(done) {
+    const subject = new CacheSubject('init');
     const expected = ['init', 'foo'];
+    const log = [];
 
     subject.subscribe((x: string) => {
-      expect(x).toEqual(expected.shift());
+      log.push(x);
     }, null, done);
 
-    subject.next('foo');
-    subject.complete();
+    expect(log).toEqual(['init']);
 
-    expect(() => {
-      subject.next('bar');
-    }).toThrow();
+    subject.next('foo');
+    expect(log).toEqual(['init', 'foo']);
+
+    subject.complete();
+    expect(log).toEqual(['init', 'foo']);
+
+    subject.next('bar');
+    expect(log).toEqual(['init', 'foo']);
   });
 
   it('should clean out unsubscribed subscribers', function(done) {
-    const subject = new SyncSubject('init');
+    const subject = new CacheSubject('init');
 
     const sub1 = subject.subscribe((x: string) => {
       expect(x).toEqual('init');
@@ -80,7 +85,7 @@ describe('SyncSubject', function() {
 
   it('should be an Observer which can be given to Observable.subscribe', function(done) {
     const source = Observable.of(1, 2, 3, 4, 5);
-    const subject = new SyncSubject(0);
+    const subject = new CacheSubject(0);
     const expected = [0, 1, 2, 3, 4, 5];
 
     subject.subscribe(

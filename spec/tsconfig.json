@@ -20,7 +20,7 @@
     "./index.spec.ts",
     "./leaveZone.spec.ts",
     "./select.spec.ts",
-    "./SynSubject.spec.ts",
+    "./CacheSubject.spec.ts",
     "../typings/main.d.ts"
   ],
   "atom": {
